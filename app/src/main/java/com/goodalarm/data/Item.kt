@@ -24,6 +24,8 @@ data class Item(
     val done: Boolean = false,
     /** True when the alarm rang the maximum number of times and nobody answered. */
     val missed: Boolean = false,
+    /** Tag such as "Home" or "Work"; empty = no tag. */
+    val tag: String = "",
 ) {
     fun date(): LocalDate =
         Instant.ofEpochMilli(timeMillis).atZone(ZoneId.systemDefault()).toLocalDate()

@@ -37,6 +37,7 @@ private val timeFormat = DateTimeFormatter.ofPattern("h:mm a")
 @Composable
 fun TaskList(
     all: List<Item>,
+    filtered: Boolean,
     header: @Composable () -> Unit,
     onOpen: (Item) -> Unit,
     onToggle: (Item) -> Unit,
@@ -69,7 +70,7 @@ fun TaskList(
         if (all.isEmpty()) {
             item(key = "empty") {
                 Text(
-                    "Nothing yet. Tap + to add a task or alarm.",
+                    if (filtered) "Nothing with this tag." else "Nothing yet. Tap + to add a task or alarm.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 32.dp),
@@ -114,6 +115,7 @@ fun ItemRow(
     val time = Instant.ofEpochMilli(item.timeMillis).atZone(ZoneId.systemDefault())
     val details = buildString {
         append(if (showDate) time.format(whenFormat) else time.format(timeFormat))
+        if (item.tag.isNotBlank()) append("  ·  ${item.tag}")
         if (item.repeatDaily) append("  ·  every day")
         if (item.missed) append("  ·  missed")
     }

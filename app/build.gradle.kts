@@ -13,11 +13,27 @@ android {
         applicationId = "com.goodalarm"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        // GitHub numbers every build; that becomes the version, so each update is "newer".
+        val buildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0
+        versionCode = 10 + buildNumber
+        versionName = "1.$buildNumber"
+    }
+
+    // One fixed key for every build, so a new APK installs over the old one
+    // and keeps your tasks. Personal app, so the password is simple on purpose.
+    signingConfigs {
+        create("goodalarm") {
+            storeFile = file("goodalarm.keystore")
+            storePassword = "goodalarm"
+            keyAlias = "goodalarm"
+            keyPassword = "goodalarm"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("goodalarm")
+        }
         release {
             // Shrinks and optimizes the app: the release build is the smooth one.
             isMinifyEnabled = true
@@ -26,8 +42,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // Personal app: sign release with the debug key so it installs without extra setup.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("goodalarm")
         }
     }
 
@@ -58,6 +73,9 @@ dependencies {
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")

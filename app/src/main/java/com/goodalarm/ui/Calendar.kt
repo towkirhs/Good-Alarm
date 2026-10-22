@@ -50,6 +50,7 @@ private val dayFormat = DateTimeFormatter.ofPattern("EEEE, d MMMM")
 @Composable
 fun CalendarScreen(
     all: List<Item>,
+    header: @Composable () -> Unit,
     selected: LocalDate,
     onSelect: (LocalDate) -> Unit,
     onOpen: (Item) -> Unit,
@@ -69,6 +70,7 @@ fun CalendarScreen(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
     ) {
+        item(key = "filter") { header() }
         item(key = "month_header") {
             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { month = month.minusMonths(1) }) {

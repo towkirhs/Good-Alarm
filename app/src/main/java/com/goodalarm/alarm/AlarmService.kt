@@ -23,6 +23,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.goodalarm.data.AppDatabase
 import com.goodalarm.data.Item
+import com.goodalarm.widget.WidgetRefresher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -163,6 +164,7 @@ class AlarmService : Service() {
             dao.update(item.copy(done = item.done || markDone, missed = missed))
             AlarmScheduler.cancel(this, item.id)
         }
+        WidgetRefresher.refresh(this)
     }
 
     // ---- Sound and vibration ----

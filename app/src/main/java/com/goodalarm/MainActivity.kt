@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,18 +40,45 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.goodalarm.ui.AddRequest
 import com.goodalarm.ui.GoodAlarmApp
 import com.goodalarm.ui.GoodAlarmTheme
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        /** Extras the widget's + button sends to open the "New" screen. */
+        const val EXTRA_ADD_DAY = "add_epoch_day"
+        const val EXTRA_ADD_TAG = "add_tag"
+    }
+
+    private var addRequest by mutableStateOf<AddRequest?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState == null) addRequest = readAddRequest(intent)
         setContent {
             GoodAlarmTheme {
-                GoodAlarmApp(header = { PermissionBanners() })
+                GoodAlarmApp(
+                    header = { PermissionBanners() },
+                    addRequest = addRequest,
+                    onAddRequestHandled = { addRequest = null },
+                )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        readAddRequest(intent)?.let { addRequest = it }
+    }
+
+    private fun readAddRequest(intent: Intent?): AddRequest? {
+        if (intent == null || !intent.hasExtra(EXTRA_ADD_DAY)) return null
+        val day = LocalDate.ofEpochDay(intent.getLongExtra(EXTRA_ADD_DAY, LocalDate.now().toEpochDay()))
+        return AddRequest(day, intent.getStringExtra(EXTRA_ADD_TAG).orEmpty())
     }
 }
 

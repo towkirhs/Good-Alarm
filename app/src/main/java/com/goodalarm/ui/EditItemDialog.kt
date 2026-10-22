@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.goodalarm.ui
 
 import android.app.DatePickerDialog
@@ -9,10 +11,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -42,6 +47,7 @@ private val timeButtonFormat = DateTimeFormatter.ofPattern("h:mm a")
 @Composable
 fun EditItemDialog(
     item: Item,
+    knownTags: List<String>,
     onDismiss: () -> Unit,
     onSave: (Item) -> Unit,
     onDelete: (Item) -> Unit,
@@ -57,6 +63,9 @@ fun EditItemDialog(
     var alarmOn by remember { mutableStateOf(item.alarmOn) }
     var repeatDaily by remember { mutableStateOf(item.repeatDaily) }
     var sound by remember { mutableStateOf(item.soundUri) }
+    var tag by remember { mutableStateOf(item.tag) }
+    var newTag by remember { mutableStateOf("") }
+    val tagChoices = (knownTags + tag).filter { it.isNotBlank() }.distinct()
 
     // Pick any audio file on the phone; keep permission to read it after restarts.
     val pickSound = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -113,6 +122,37 @@ fun EditItemDialog(
                 }
                 SwitchRow("Alarm (loud)", alarmOn) { alarmOn = it }
                 SwitchRow("Repeat every day", repeatDaily) { repeatDaily = it }
+                Text("Tag", style = MaterialTheme.typography.labelLarge)
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(selected = tag.isBlank(), onClick = { tag = "" }, label = { Text("None") })
+                    tagChoices.forEach { choice ->
+                        FilterChip(
+                            selected = tag == choice,
+                            onClick = { tag = choice },
+                            label = { Text(choice) },
+                        )
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = newTag,
+                        onValueChange = { newTag = it },
+                        label = { Text("New tag") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(
+                        onClick = {
+                            if (newTag.isNotBlank()) {
+                                tag = newTag.trim()
+                                newTag = ""
+                            }
+                        },
+                    ) { Text("Add") }
+                }
                 if (alarmOn) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -139,6 +179,7 @@ fun EditItemDialog(
                         alarmOn = alarmOn,
                         repeatDaily = repeatDaily,
                         soundUri = sound,
+                        tag = tag,
                         // Moving a finished item to a new future time makes it active again.
                         done = if (movedToFuture) false else item.done,
                         missed = if (movedToFuture) false else item.missed,
