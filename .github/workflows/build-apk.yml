@@ -2,7 +2,11 @@ name: Build APK
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -21,8 +25,17 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk GoodAlarm-1.${{ github.run_number }}.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: GoodAlarm-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: GoodAlarm-1.${{ github.run_number }}.apk
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Good Alarm 1.${{ github.run_number }}
+          body: ${{ github.event.head_commit.message }}
+          files: GoodAlarm-1.${{ github.run_number }}.apk
