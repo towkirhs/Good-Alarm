@@ -10,7 +10,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.goodalarm"
+        // The beta workflow sets APP_ID_SUFFIX=.beta so the beta installs next to the
+        // normal app with its own data. Without it, nothing changes.
+        val idSuffix = System.getenv("APP_ID_SUFFIX") ?: ""
+        applicationId = "com.goodalarm$idSuffix"
+        manifestPlaceholders["appLabel"] = if (idSuffix.isEmpty()) "Good Alarm" else "Good Alarm Beta"
         minSdk = 26
         targetSdk = 35
         // GitHub numbers every build; that becomes the version, so each update is "newer".
